@@ -8,6 +8,7 @@ import RailgunBeam from './RailgunBeam'
 import RocketProjectile from './RocketProjectile'
 import WeaponViewmodel from './WeaponViewmodel'
 import { playerRigidBodyRef } from '../Player/PlayerController'
+import { checkRayHit } from '../../utils/targetRegistry'
 
 interface Beam {
   id: number
@@ -55,6 +56,9 @@ export default function WeaponSystem() {
       // Start beam slightly ahead of camera so it's not clipped by the near plane
       const beamStart = rayOrigin.clone().add(forward.clone().multiplyScalar(0.5))
       const beamEnd = rayOrigin.clone().add(forward.clone().multiplyScalar(dist))
+
+      // Check if we hit a target (ray-sphere test against registry)
+      checkRayHit(rayOrigin, forward, maxDist)
 
       const id = nextId++
       setBeams((prev) => [...prev.filter((b) => now - b.createdAt < 0.4), { id, start: beamStart, end: beamEnd, createdAt: now }])

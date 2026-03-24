@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Ray } from '@dimforge/rapier3d-compat'
 import * as THREE from 'three'
+import { checkExplosionHits } from '../../utils/targetRegistry'
 
 const ROCKET_SPEED = 30
 const ROCKET_LIFETIME = 5
@@ -54,6 +55,11 @@ export default function RocketProjectile({
         if (explosionLightRef.current) {
           explosionLightRef.current.intensity = (1 - t) * 50
         }
+      }
+
+      // Check if explosion hits any targets
+      if (!appliedImpulse.current) {
+        checkExplosionHits(explosion.pos, EXPLOSION_RADIUS)
       }
 
       // Apply impulse to player once

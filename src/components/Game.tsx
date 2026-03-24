@@ -1,12 +1,39 @@
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
-import { Suspense } from 'react'
+import { Suspense, useState, useCallback, useEffect } from 'react'
 import PlayerController from './Player/PlayerController'
 import TrainingMap from './Map/TrainingMap'
 import WeaponSystem from './Weapons/WeaponSystem'
 import Crosshair from './HUD/Crosshair'
 import SpeedMeter from './HUD/SpeedMeter'
 import WeaponIndicator from './HUD/WeaponIndicator'
+import BullseyeTarget from './Targets/BullseyeTarget'
+import InfoPanel from './Targets/InfoPanel'
+import { bioEntries } from '../data/bioContent'
+
+// Wall-mounted target placements with facing rotations
+// Rotation reference (cylinder bullseye face defaults to +Y):
+//   Face +Z: [π/2, 0, 0]    Face -Z: [-π/2, 0, 0]
+//   Face +X: [0, 0, -π/2]   Face -X: [0, 0, π/2]
+const HP = Math.PI / 2
+const targetPlacements: { id: string; position: [number, number, number]; rotation: [number, number, number] }[] = [
+  // Zone 1: Spawn area back wall (z=-12, inner face z≈-11.75) — facing +Z toward player
+  { id: 'target-about', position: [0, 1, -11.65], rotation: [HP, 0, 0] },
+  // Zone 2: Strafe corridor south wall (z=12, inner face z≈12.25) — mid-corridor, facing +Z
+  { id: 'target-experience-1', position: [35, 2.5, 12.35], rotation: [HP, 0, 0] },
+  // Zone 3: Tower central pillar +X face (pillar at x=-20, face at x≈-19.5) — mid-height
+  { id: 'target-skills', position: [-19.35, 7, -15], rotation: [0, 0, -HP] },
+  // Zone 3: Tower central pillar +Z face — near the top
+  { id: 'target-experience-2', position: [-20, 13, -14.35], rotation: [HP, 0, 0] },
+  // Zone 4: Pillar garden, on pillar at [28,-22] h=6, -X face (face at x≈27)
+  { id: 'target-project-1', position: [27, 4, -22], rotation: [0, 0, HP] },
+  // Zone 4: Pillar garden, on pillar at [26,-10] h=8, -X face (face at x≈25)
+  { id: 'target-project-2', position: [25, 5, -10], rotation: [0, 0, HP] },
+  // Zone 5: Final platform column +Z face (column at z=-40, face at z≈-39.25)
+  { id: 'target-contact', position: [0, 22, -39.15], rotation: [HP, 0, 0] },
+]
+
+const bioMap = new Map(bioEntries.map((e) => [e.id, e]))
 
 function Lights() {
   return (
@@ -33,6 +60,54 @@ function Lights() {
 }
 
 export default function Game() {
+  const [hitTargets, setHitTargets] = useState<Set<string>>(new Set())
+  const [panelQueue, setPanelQueue] = useState<string[]>([])
+  const MAX_PANELS = 3
+
+  const handleTargetHit = useCallback((id: string) => {
+    setHitTargets((prev) => {
+      if (prev.has(id)) return prev
+      const next = new Set(prev)
+      next.add(id)
+      return next
+    })
+    setPanelQueue((prev) => {
+      // Don't add duplicates
+      if (prev.includes(id)) return prev
+      const next = [...prev, id]
+      // If over max, drop the oldest
+      if (next.length > MAX_PANELS) return next.slice(next.length - MAX_PANELS)
+      return next
+    })
+  }, [])
+
+  const dismissOldestPanel = useCallback(() => {
+    setPanelQueue((prev) => {
+      if (prev.length === 0) return prev
+      const next = prev.slice(1)
+      if (next.length === 0) {
+        // Re-request pointer lock when all panels dismissed
+        document.body.requestPointerLock()
+      }
+      return next
+    })
+  }, [])
+
+  // ENTER to dismiss oldest panel
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && panelQueue.length > 0) {
+        e.preventDefault()
+        e.stopPropagation()
+        dismissOldestPanel()
+      }
+    }
+    window.addEventListener('keydown', handleKey, true)
+    return () => window.removeEventListener('keydown', handleKey, true)
+  }, [panelQueue, dismissOldestPanel])
+
+  const visiblePanels = panelQueue.map((id) => bioMap.get(id)).filter(Boolean)
+
   return (
     <>
       <Canvas
@@ -48,12 +123,42 @@ export default function Game() {
             <TrainingMap />
             <PlayerController />
             <WeaponSystem />
+            {targetPlacements.map((t) => (
+              <BullseyeTarget
+                key={t.id}
+                id={t.id}
+                position={t.position}
+                rotation={t.rotation}
+                onHit={handleTargetHit}
+                isHit={hitTargets.has(t.id)}
+              />
+            ))}
           </Physics>
         </Suspense>
       </Canvas>
       <Crosshair />
       <SpeedMeter />
       <WeaponIndicator />
+      {/* Target counter */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '16px',
+          right: '16px',
+          color: '#ff8844',
+          fontFamily: "'Courier New', Courier, monospace",
+          fontSize: '16px',
+          letterSpacing: '1px',
+          textShadow: '0 0 8px #ff440060',
+          zIndex: 10,
+        }}
+      >
+        {hitTargets.size}/{targetPlacements.length} DISCOVERED
+      </div>
+      {/* Info panel queue */}
+      {visiblePanels.length > 0 && (
+        <InfoPanel entries={visiblePanels as import('../data/bioContent').BioEntry[]} onDismiss={dismissOldestPanel} />
+      )}
     </>
   )
 }
