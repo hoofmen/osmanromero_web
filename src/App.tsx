@@ -1,90 +1,64 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import Game from './components/Game'
-
-function MainMenu({ onStart }: { onStart: () => void }) {
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#1a0505',
-        zIndex: 200,
-      }}
-    >
-      <h1
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 64,
-          color: '#cc2200',
-          margin: 0,
-          textShadow: '0 0 40px rgba(204, 34, 0, 0.6)',
-        }}
-      >
-        ARENA
-      </h1>
-      <p
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 14,
-          color: 'rgba(255, 150, 100, 0.4)',
-          margin: '8px 0 40px',
-          letterSpacing: 4,
-        }}
-      >
-        A DEFRAG EXPERIENCE
-      </p>
-      <button
-        onClick={onStart}
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 18,
-          padding: '16px 48px',
-          background: 'transparent',
-          border: '2px solid #cc2200',
-          color: '#cc2200',
-          cursor: 'pointer',
-          letterSpacing: 3,
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#cc2200'
-          e.currentTarget.style.color = '#1a0505'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = '#cc2200'
-        }}
-      >
-        ENTER THE ARENA
-      </button>
-      <p
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 11,
-          color: 'rgba(255, 150, 100, 0.25)',
-          marginTop: 40,
-        }}
-      >
-        WASD move &middot; MOUSE look &middot; SPACE jump
-      </p>
-    </div>
-  )
-}
+import MainMenu from './components/UI/MainMenu'
+import PauseMenu from './components/UI/PauseMenu'
+import { useGameState } from './hooks/useGameState'
 
 export default function App() {
-  const [started, setStarted] = useState(false)
+  const phase = useGameState((s) => s.phase)
+  const start = useGameState((s) => s.start)
+  const pause = useGameState((s) => s.pause)
+  const resume = useGameState((s) => s.resume)
+  const restart = useGameState((s) => s.restart)
+  const returnToMenu = useGameState((s) => s.returnToMenu)
+
 
   const handleStart = useCallback(() => {
-    setStarted(true)
-  }, [])
+    start()
+  }, [start])
 
-  if (!started) {
+  const handleResume = useCallback(() => {
+    resume()
+    document.body.requestPointerLock()
+  }, [resume])
+
+  const handleRestart = useCallback(() => {
+    restart()
+    document.body.requestPointerLock()
+  }, [restart])
+
+  const handleMainMenu = useCallback(() => {
+    document.exitPointerLock()
+    returnToMenu()
+  }, [returnToMenu])
+
+  // ESC to toggle pause
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        const currentPhase = useGameState.getState().phase
+        if (currentPhase === 'playing') {
+          document.exitPointerLock()
+          pause()
+        } else if (currentPhase === 'paused') {
+          handleResume()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [pause, handleResume])
+
+  if (phase === 'menu') {
     return <MainMenu onStart={handleStart} />
   }
 
-  return <Game />
+  return (
+    <>
+      <Game />
+      {phase === 'paused' && (
+        <PauseMenu onResume={handleResume} onRestart={handleRestart} onMainMenu={handleMainMenu} />
+      )}
+    </>
+  )
 }

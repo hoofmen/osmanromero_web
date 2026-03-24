@@ -1,9 +1,18 @@
 import { useRef, useEffect } from 'react'
 import { MOUSE_SENSITIVITY } from '../utils/constants'
 
+// Shared refs so external code (e.g. respawn) can reset look direction
+export const mouseLookState = {
+  yaw: { current: 0 },
+  pitch: { current: 0 },
+}
+
 export function useMouseLook() {
   const yaw = useRef(0)
   const pitch = useRef(0)
+  // Sync shared state
+  mouseLookState.yaw = yaw
+  mouseLookState.pitch = pitch
   const rightMouseDown = useRef(false)
 
   useEffect(() => {

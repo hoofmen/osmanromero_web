@@ -4,7 +4,7 @@ import { CapsuleCollider, RigidBody, useRapier, type RapierRigidBody } from '@re
 import { Ray } from '@dimforge/rapier3d-compat'
 import * as THREE from 'three'
 import { useKeyboard } from '../../hooks/useKeyboard'
-import { useMouseLook } from '../../hooks/useMouseLook'
+import { useMouseLook, mouseLookState } from '../../hooks/useMouseLook'
 import {
   AIR_ACCEL,
   AIR_SPEED_CAP,
@@ -71,6 +71,16 @@ function applyFriction(vx: number, vz: number, dt: number): [number, number] {
 
 // Shared ref so weapon system can apply rocket-jump impulse
 export const playerRigidBodyRef = { current: null as RapierRigidBody | null }
+
+// Teleport player back to spawn, zero velocity, and reset look direction
+export function respawnPlayer() {
+  const rb = playerRigidBodyRef.current
+  if (!rb) return
+  rb.setTranslation({ x: PLAYER_SPAWN[0], y: PLAYER_SPAWN[1], z: PLAYER_SPAWN[2] }, true)
+  rb.setLinvel({ x: 0, y: 0, z: 0 }, true)
+  mouseLookState.yaw.current = 0
+  mouseLookState.pitch.current = 0
+}
 
 export default function PlayerController() {
   const rigidBody = useRef<RapierRigidBody>(null)

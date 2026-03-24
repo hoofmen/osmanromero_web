@@ -1,15 +1,19 @@
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import { Suspense, useState, useCallback, useEffect } from 'react'
-import PlayerController from './Player/PlayerController'
+import PlayerController, { respawnPlayer } from './Player/PlayerController'
 import TrainingMap from './Map/TrainingMap'
 import WeaponSystem from './Weapons/WeaponSystem'
 import Crosshair from './HUD/Crosshair'
 import SpeedMeter from './HUD/SpeedMeter'
 import WeaponIndicator from './HUD/WeaponIndicator'
+import Timer from './HUD/Timer'
+import TargetCounter from './HUD/TargetCounter'
+import FPSCounter, { FPSTracker } from './HUD/FPSCounter'
 import BullseyeTarget from './Targets/BullseyeTarget'
 import InfoPanel from './Targets/InfoPanel'
 import { bioEntries } from '../data/bioContent'
+import { useGameState } from '../hooks/useGameState'
 
 // Wall-mounted target placements with facing rotations
 // Rotation reference (cylinder bullseye face defaults to +Y):
@@ -62,7 +66,15 @@ function Lights() {
 export default function Game() {
   const [hitTargets, setHitTargets] = useState<Set<string>>(new Set())
   const [panelQueue, setPanelQueue] = useState<string[]>([])
+  const restartCount = useGameState((s) => s.restartCount)
   const MAX_PANELS = 3
+
+  // Reset game state on restart (without remounting Canvas/Physics)
+  useEffect(() => {
+    setHitTargets(new Set())
+    setPanelQueue([])
+    respawnPlayer()
+  }, [restartCount])
 
   const handleTargetHit = useCallback((id: string) => {
     setHitTargets((prev) => {
@@ -117,6 +129,7 @@ export default function Game() {
       >
         <color attach="background" args={['#1a0505']} />
         <fog attach="fog" args={['#1a0505', 40, 120]} />
+        <FPSTracker />
         <Suspense fallback={null}>
           <Physics gravity={[0, 0, 0]} timeStep="vary">
             <Lights />
@@ -139,22 +152,9 @@ export default function Game() {
       <Crosshair />
       <SpeedMeter />
       <WeaponIndicator />
-      {/* Target counter */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '16px',
-          right: '16px',
-          color: '#ff8844',
-          fontFamily: "'Courier New', Courier, monospace",
-          fontSize: '16px',
-          letterSpacing: '1px',
-          textShadow: '0 0 8px #ff440060',
-          zIndex: 10,
-        }}
-      >
-        {hitTargets.size}/{targetPlacements.length} DISCOVERED
-      </div>
+      <Timer />
+      <FPSCounter />
+      <TargetCounter hit={hitTargets.size} total={targetPlacements.length} />
       {/* Info panel queue */}
       {visiblePanels.length > 0 && (
         <InfoPanel entries={visiblePanels as import('../data/bioContent').BioEntry[]} onDismiss={dismissOldestPanel} />
