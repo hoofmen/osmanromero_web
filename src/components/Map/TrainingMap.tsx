@@ -53,6 +53,15 @@ export default function TrainingMap() {
       {/* Long dividing wall */}
       <BoxObstacle position={[0, 2, -25]} size={[60, 4, 0.5]} color="#4a2010" />
 
+      {/* === Strafe-jump corridor === */}
+      {/* Walls on each side */}
+      <BoxObstacle position={[-30, 2, 5]} size={[0.5, 4, 50]} color="#4a1818" />
+      <BoxObstacle position={[-24, 2, 5]} size={[0.5, 4, 50]} color="#4a1818" />
+      {/* Floor of corridor (slightly raised to feel distinct) */}
+      <BoxObstacle position={[-27, -0.25, 5]} size={[6, 0.5, 50]} color="#4a2010" />
+      {/* Gap at the end — platform to land on if fast enough */}
+      <BoxObstacle position={[-27, -0.25, 35]} size={[6, 0.5, 4]} color="#5a2818" />
+
       {/* Taller pillars */}
       <BoxObstacle position={[-18, 3, -18]} size={[2, 6, 2]} color="#4a1818" />
       <BoxObstacle position={[20, 2.5, 15]} size={[2, 5, 2]} />
