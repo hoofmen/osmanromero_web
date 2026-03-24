@@ -1,0 +1,90 @@
+import { useState, useCallback } from 'react'
+import Game from './components/Game'
+
+function MainMenu({ onStart }: { onStart: () => void }) {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#1a0505',
+        zIndex: 200,
+      }}
+    >
+      <h1
+        style={{
+          fontFamily: 'monospace',
+          fontSize: 64,
+          color: '#cc2200',
+          margin: 0,
+          textShadow: '0 0 40px rgba(204, 34, 0, 0.6)',
+        }}
+      >
+        ARENA
+      </h1>
+      <p
+        style={{
+          fontFamily: 'monospace',
+          fontSize: 14,
+          color: 'rgba(255, 150, 100, 0.4)',
+          margin: '8px 0 40px',
+          letterSpacing: 4,
+        }}
+      >
+        A DEFRAG EXPERIENCE
+      </p>
+      <button
+        onClick={onStart}
+        style={{
+          fontFamily: 'monospace',
+          fontSize: 18,
+          padding: '16px 48px',
+          background: 'transparent',
+          border: '2px solid #cc2200',
+          color: '#cc2200',
+          cursor: 'pointer',
+          letterSpacing: 3,
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#cc2200'
+          e.currentTarget.style.color = '#1a0505'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = '#cc2200'
+        }}
+      >
+        ENTER THE ARENA
+      </button>
+      <p
+        style={{
+          fontFamily: 'monospace',
+          fontSize: 11,
+          color: 'rgba(255, 150, 100, 0.25)',
+          marginTop: 40,
+        }}
+      >
+        WASD move &middot; MOUSE look &middot; SPACE jump
+      </p>
+    </div>
+  )
+}
+
+export default function App() {
+  const [started, setStarted] = useState(false)
+
+  const handleStart = useCallback(() => {
+    setStarted(true)
+  }, [])
+
+  if (!started) {
+    return <MainMenu onStart={handleStart} />
+  }
+
+  return <Game />
+}
