@@ -69,6 +69,9 @@ function applyFriction(vx: number, vz: number, dt: number): [number, number] {
   return [vx * newSpeed, vz * newSpeed]
 }
 
+// Shared ref so weapon system can apply rocket-jump impulse
+export const playerRigidBodyRef = { current: null as RapierRigidBody | null }
+
 export default function PlayerController() {
   const rigidBody = useRef<RapierRigidBody>(null)
   const keys = useKeyboard()
@@ -86,6 +89,8 @@ export default function PlayerController() {
   useFrame((state, delta) => {
     const rb = rigidBody.current
     if (!rb) return
+    // Sync shared ref for weapon system
+    playerRigidBodyRef.current = rb
 
     const dt = Math.min(delta, 0.05)
 

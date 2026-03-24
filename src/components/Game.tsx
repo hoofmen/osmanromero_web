@@ -3,15 +3,15 @@ import { Physics } from '@react-three/rapier'
 import { Suspense } from 'react'
 import PlayerController from './Player/PlayerController'
 import TrainingMap from './Map/TrainingMap'
+import WeaponSystem from './Weapons/WeaponSystem'
 import Crosshair from './HUD/Crosshair'
 import SpeedMeter from './HUD/SpeedMeter'
+import WeaponIndicator from './HUD/WeaponIndicator'
 
 function Lights() {
   return (
     <>
-      {/* Ambient fill — enough to see geometry from any angle */}
       <ambientLight intensity={0.5} color="#ff4400" />
-      {/* Dusk sun — low angle, long shadows */}
       <directionalLight
         position={[-40, 28, -30]}
         intensity={1.5}
@@ -26,9 +26,7 @@ function Lights() {
         shadow-camera-near={0.1}
         shadow-camera-far={120}
       />
-      {/* Fill light from opposite side so shadow faces aren't black */}
       <directionalLight position={[40, 6, 30]} intensity={0.7} color="#882200" />
-      {/* Hemisphere — dark red sky, dim ground */}
       <hemisphereLight args={['#441100', '#0a0000', 0.5]} />
     </>
   )
@@ -49,11 +47,13 @@ export default function Game() {
             <Lights />
             <TrainingMap />
             <PlayerController />
+            <WeaponSystem />
           </Physics>
         </Suspense>
       </Canvas>
       <Crosshair />
       <SpeedMeter />
+      <WeaponIndicator />
     </>
   )
 }
