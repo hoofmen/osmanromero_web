@@ -21,7 +21,7 @@ export default function MainMenu({ onStart }: { onStart: () => void }) {
           textShadow: '0 0 40px rgba(204, 34, 0, 0.6)',
         }}
       >
-        ARENA
+        OSMANROMERO
       </h1>
       <p
         style={{
@@ -32,7 +32,7 @@ export default function MainMenu({ onStart }: { onStart: () => void }) {
           letterSpacing: 4,
         }}
       >
-        A DEFRAG EXPERIENCE
+        A BIO DEFRAG EXPERIENCE
       </p>
       <button
         onClick={onStart}
@@ -68,9 +68,9 @@ export default function MainMenu({ onStart }: { onStart: () => void }) {
           textAlign: 'center',
         }}
       >
-        WASD move &middot; MOUSE look &middot; SPACE jump
+        WASD move &middot; MOUSE look &middot; RIGHT-CLICK jump
         <br />
-        Q railgun &middot; E rocket &middot; ESC pause
+        SPACE zoom &middot; Q railgun &middot; E rocket &middot; ESC pause
       </p>
     </div>
   )

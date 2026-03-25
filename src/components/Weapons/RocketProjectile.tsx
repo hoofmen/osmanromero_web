@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { Ray } from '@dimforge/rapier3d-compat'
 import * as THREE from 'three'
 import { checkExplosionHits } from '../../utils/targetRegistry'
+import ExplosionParticles from './ExplosionParticles'
 
 const ROCKET_SPEED = 30
 const ROCKET_LIFETIME = 5
@@ -114,7 +115,7 @@ export default function RocketProjectile({
         { x: pos.current.x, y: pos.current.y, z: pos.current.z },
         { x: step.x, y: step.y, z: step.z },
       )
-      const hit = rapierWorld.castRay(ray, ROCKET_SPEED * dt + 0.5, true)
+      const hit = rapierWorld.castRay(ray, ROCKET_SPEED * dt + 0.5, true, undefined, undefined, undefined, playerRbRef.current ?? undefined)
       if (hit !== null && hit.timeOfImpact <= ROCKET_SPEED * dt + 0.5) {
         alive.current = false
         setExplosion({ pos: pos.current.clone(), time: now })
@@ -122,29 +123,30 @@ export default function RocketProjectile({
     }
   })
 
-  if (explosion) {
-    return (
-      <group>
-        <mesh ref={explosionMeshRef} position={explosion.pos}>
-          <sphereGeometry args={[1, 16, 16]} />
-          <meshBasicMaterial
-            ref={explosionMatRef}
-            color="#ff4400"
-            transparent
-            opacity={1}
-            toneMapped={false}
-          />
-        </mesh>
-        <pointLight ref={explosionLightRef} position={explosion.pos} color="#ff4400" intensity={50} distance={35} />
-      </group>
-    )
-  }
-
   return (
-    <mesh ref={meshRef} position={pos.current}>
-      <sphereGeometry args={[0.15, 8, 8]} />
-      <meshBasicMaterial color="#ff6600" toneMapped={false} />
-      <pointLight color="#ff4400" intensity={8} distance={15} />
-    </mesh>
+    <group>
+      {explosion ? (
+        <>
+          <mesh ref={explosionMeshRef} position={explosion.pos}>
+            <sphereGeometry args={[1, 16, 16]} />
+            <meshBasicMaterial
+              ref={explosionMatRef}
+              color="#ff4400"
+              transparent
+              opacity={1}
+              toneMapped={false}
+            />
+          </mesh>
+          <pointLight ref={explosionLightRef} position={explosion.pos} color="#ff4400" intensity={50} distance={35} />
+          <ExplosionParticles position={explosion.pos} startTime={explosion.time} />
+        </>
+      ) : (
+        <mesh ref={meshRef} position={pos.current}>
+          <sphereGeometry args={[0.15, 8, 8]} />
+          <meshBasicMaterial color="#ff6600" toneMapped={false} />
+          <pointLight color="#ff4400" intensity={8} distance={15} />
+        </mesh>
+      )}
+    </group>
   )
 }

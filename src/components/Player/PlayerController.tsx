@@ -142,8 +142,8 @@ export default function PlayerController() {
     let vz = vel.z
     let vy = vel.y
 
-    // --- Track jump input (right-click or space) ---
-    const jumpPressed = rightMouseDown.current || keys.current.has('Space')
+    // --- Track jump input (right-click only, space is reserved for zoom) ---
+    const jumpPressed = rightMouseDown.current
 
     if (grounded.current) {
       // --- Bunny-hop: if player is holding jump on the frame they land,

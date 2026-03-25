@@ -2,44 +2,38 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { weaponState } from '../../hooks/useWeapons'
+import { playerVelocity } from '../Player/PlayerController'
 
 export default function WeaponViewmodel() {
   const groupRef = useRef<THREE.Group>(null)
-  const kickRef = useRef(0)
+  const bobPhase = useRef(0)
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (!groupRef.current) return
 
     const cam = state.camera
 
-    // Position weapon relative to camera
+    // Position weapon centered in front of camera
     const offset = new THREE.Vector3(0, -0.25, -0.5)
     offset.applyQuaternion(cam.quaternion)
     groupRef.current.position.copy(cam.position).add(offset)
     groupRef.current.quaternion.copy(cam.quaternion)
 
-    // Kickback animation
-    const now = performance.now() / 1000
-    const timeSinceFire = now - weaponState.lastFireTime
-    if (timeSinceFire < 0.15) {
-      kickRef.current = (1 - timeSinceFire / 0.15) * 0.1
-    } else {
-      kickRef.current *= 0.8
-    }
+    // Speed-aware bob
+    const hSpeed = Math.sqrt(
+      playerVelocity.current.x ** 2 + playerVelocity.current.z ** 2
+    )
+    const speedNorm = Math.min(hSpeed / 10, 1)
+    bobPhase.current += delta * 8 * speedNorm
 
-    // Apply kick (push back along camera forward)
-    const kickOffset = new THREE.Vector3(0, 0, kickRef.current)
-    kickOffset.applyQuaternion(cam.quaternion)
-    groupRef.current.position.add(kickOffset)
+    const bobAmp = 0.018 * speedNorm
+    const bobX = Math.sin(bobPhase.current)             * bobAmp
+    const bobY = Math.abs(Math.cos(bobPhase.current))   * bobAmp * 0.5
 
-    // Subtle bob based on movement
-    const time = state.clock.elapsedTime
-    const bobX = Math.sin(time * 8) * 0.005
-    const bobY = Math.cos(time * 16) * 0.003
     groupRef.current.position.x += bobX
-    groupRef.current.position.y += bobY
+    groupRef.current.position.y -= bobY
 
-    // Toggle visibility based on active weapon
+    // Weapon visibility
     const children = groupRef.current.children
     if (children[0]) children[0].visible = weaponState.activeWeapon === 'railgun'
     if (children[1]) children[1].visible = weaponState.activeWeapon === 'rocketLauncher'
@@ -47,7 +41,7 @@ export default function WeaponViewmodel() {
 
   return (
     <group ref={groupRef}>
-      {/* Railgun model — 10% thinner */}
+      {/* Railgun model */}
       <group>
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[0.018, 0.0225, 0.6, 8]} />
@@ -63,7 +57,7 @@ export default function WeaponViewmodel() {
         </mesh>
       </group>
 
-      {/* Rocket Launcher model — 10% thicker */}
+      {/* Rocket Launcher model */}
       <group>
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[0.0495, 0.055, 0.55, 8]} />

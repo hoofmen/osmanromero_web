@@ -2,7 +2,9 @@ import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import { Suspense, useState, useCallback, useEffect } from 'react'
 import PlayerController, { respawnPlayer } from './Player/PlayerController'
+import CameraZoom from './Player/CameraZoom'
 import TrainingMap from './Map/TrainingMap'
+import Skybox from './Map/Skybox'
 import WeaponSystem from './Weapons/WeaponSystem'
 import Crosshair from './HUD/Crosshair'
 import SpeedMeter from './HUD/SpeedMeter'
@@ -14,6 +16,7 @@ import BullseyeTarget from './Targets/BullseyeTarget'
 import InfoPanel from './Targets/InfoPanel'
 import { bioEntries } from '../data/bioContent'
 import { useGameState } from '../hooks/useGameState'
+import { useVisualSettings } from '../hooks/useVisualSettings'
 
 // Wall-mounted target placements with facing rotations
 // Rotation reference (cylinder bullseye face defaults to +Y):
@@ -21,20 +24,16 @@ import { useGameState } from '../hooks/useGameState'
 //   Face +X: [0, 0, -π/2]   Face -X: [0, 0, π/2]
 const HP = Math.PI / 2
 const targetPlacements: { id: string; position: [number, number, number]; rotation: [number, number, number] }[] = [
-  // Zone 1: Spawn area back wall (z=-12, inner face z≈-11.75) — facing +Z toward player
-  { id: 'target-about', position: [0, 1, -11.65], rotation: [HP, 0, 0] },
-  // Zone 2: Strafe corridor south wall (z=12, inner face z≈12.25) — mid-corridor, facing +Z
-  { id: 'target-experience-1', position: [35, 2.5, 12.35], rotation: [HP, 0, 0] },
-  // Zone 3: Tower central pillar +X face (pillar at x=-20, face at x≈-19.5) — mid-height
-  { id: 'target-skills', position: [-19.35, 7, -15], rotation: [0, 0, -HP] },
-  // Zone 3: Tower central pillar +Z face — near the top
-  { id: 'target-experience-2', position: [-20, 13, -14.35], rotation: [HP, 0, 0] },
-  // Zone 4: Pillar garden, on pillar at [28,-22] h=6, -X face (face at x≈27)
-  { id: 'target-project-1', position: [27, 4, -22], rotation: [0, 0, HP] },
-  // Zone 4: Pillar garden, on pillar at [26,-10] h=8, -X face (face at x≈25)
-  { id: 'target-project-2', position: [25, 5, -10], rotation: [0, 0, HP] },
-  // Zone 5: Final platform column +Z face (column at z=-40, face at z≈-39.25)
-  { id: 'target-contact', position: [0, 22, -39.15], rotation: [HP, 0, 0] },
+  // 1. About Me — spawn area, on the box right in front of player. Easy first find.
+  { id: 'target-about', position: [0, 2, -5], rotation: [HP, 0, 0] },
+  // 2. Education — vertical tower upper platform, facing +X.
+  { id: 'target-experience-2', position: [-20, 16, -15], rotation: [0, 0, -HP] },
+  // 3. Experience — final platform column, mounted on +X face.
+  { id: 'target-experience-1', position: [0.85, 18, -40], rotation: [0, 0, -HP] },
+  // 4. Skills — pillar garden tall pillar (x=26, z=-10, h=8), mounted on +X face toward Contact.
+  { id: 'target-skills', position: [27.1, 5, -10], rotation: [0, 0, -HP] },
+  // 5. Contact — strafe corridor landing platform, facing back down the corridor (-X).
+  { id: 'target-contact', position: [67, 1.5, 15], rotation: [0, 0, HP] },
 ]
 
 const bioMap = new Map(bioEntries.map((e) => [e.id, e]))
@@ -65,14 +64,13 @@ function Lights() {
 
 export default function Game() {
   const [hitTargets, setHitTargets] = useState<Set<string>>(new Set())
-  const [panelQueue, setPanelQueue] = useState<string[]>([])
+  const [activePanel, setActivePanel] = useState<string | null>(null)
   const restartCount = useGameState((s) => s.restartCount)
-  const MAX_PANELS = 3
 
   // Reset game state on restart (without remounting Canvas/Physics)
   useEffect(() => {
     setHitTargets(new Set())
-    setPanelQueue([])
+    setActivePanel(null)
     respawnPlayer()
   }, [restartCount])
 
@@ -83,42 +81,30 @@ export default function Game() {
       next.add(id)
       return next
     })
-    setPanelQueue((prev) => {
-      // Don't add duplicates
-      if (prev.includes(id)) return prev
-      const next = [...prev, id]
-      // If over max, drop the oldest
-      if (next.length > MAX_PANELS) return next.slice(next.length - MAX_PANELS)
-      return next
-    })
+    setActivePanel(id)
   }, [])
 
-  const dismissOldestPanel = useCallback(() => {
-    setPanelQueue((prev) => {
-      if (prev.length === 0) return prev
-      const next = prev.slice(1)
-      if (next.length === 0) {
-        // Re-request pointer lock when all panels dismissed
-        document.body.requestPointerLock()
-      }
-      return next
-    })
+  const dismissPanel = useCallback(() => {
+    setActivePanel(null)
+    document.body.requestPointerLock()
   }, [])
 
-  // ENTER to dismiss oldest panel
+  // ENTER to dismiss panel
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' && panelQueue.length > 0) {
+      if (e.key === 'Enter' && activePanel) {
         e.preventDefault()
         e.stopPropagation()
-        dismissOldestPanel()
+        dismissPanel()
       }
     }
     window.addEventListener('keydown', handleKey, true)
     return () => window.removeEventListener('keydown', handleKey, true)
-  }, [panelQueue, dismissOldestPanel])
+  }, [activePanel, dismissPanel])
 
-  const visiblePanels = panelQueue.map((id) => bioMap.get(id)).filter(Boolean)
+  const activeBioEntry = activePanel ? bioMap.get(activePanel) : null
+
+  const { skybox } = useVisualSettings()
 
   return (
     <>
@@ -127,14 +113,16 @@ export default function Game() {
         camera={{ fov: 90, near: 0.1, far: 500 }}
         style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%' }}
       >
-        <color attach="background" args={['#1a0505']} />
+        <color attach="background" args={['#2f0a0a']} />
         <fog attach="fog" args={['#1a0505', 40, 120]} />
+        {skybox && <Skybox />}
         <FPSTracker />
         <Suspense fallback={null}>
           <Physics gravity={[0, 0, 0]} timeStep="vary">
             <Lights />
             <TrainingMap />
             <PlayerController />
+            <CameraZoom />
             <WeaponSystem />
             {targetPlacements.map((t) => (
               <BullseyeTarget
@@ -155,9 +143,9 @@ export default function Game() {
       <Timer />
       <FPSCounter />
       <TargetCounter hit={hitTargets.size} total={targetPlacements.length} />
-      {/* Info panel queue */}
-      {visiblePanels.length > 0 && (
-        <InfoPanel entries={visiblePanels as import('../data/bioContent').BioEntry[]} onDismiss={dismissOldestPanel} />
+      {/* Info panel */}
+      {activeBioEntry && (
+        <InfoPanel entry={activeBioEntry} onDismiss={dismissPanel} />
       )}
     </>
   )

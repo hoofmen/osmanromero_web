@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { registerTarget, unregisterTarget } from '../../utils/targetRegistry'
+import { useVisualSettings } from '../../hooks/useVisualSettings'
 
 interface BullseyeTargetProps {
   id: string
@@ -108,11 +109,16 @@ export default function BullseyeTarget({ id, position, rotation, onHit, isHit }:
       />
 
       {/* Spark explosion on hit */}
-      {hitTime && !sparksComplete && (
-        <SparkExplosion hitTime={hitTime} onComplete={() => setSparksComplete(true)} />
-      )}
+      {hitTime && !sparksComplete && <SparkExplosionGated hitTime={hitTime} onComplete={() => setSparksComplete(true)} />}
     </group>
   )
+}
+
+// --- Particles toggle gate ---
+function SparkExplosionGated(props: SparkExplosionProps) {
+  const { particles } = useVisualSettings()
+  if (!particles) return null
+  return <SparkExplosion {...props} />
 }
 
 // --- Spark particle system ---

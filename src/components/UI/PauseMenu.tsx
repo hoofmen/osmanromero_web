@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import VisualSettings from './VisualSettings'
+
 interface PauseMenuProps {
   onResume: () => void
   onRestart: () => void
@@ -37,6 +40,8 @@ function MenuButton({ label, onClick }: { label: string; onClick: () => void }) 
 }
 
 export default function PauseMenu({ onResume, onRestart, onMainMenu }: PauseMenuProps) {
+  const [showSettings, setShowSettings] = useState(false)
+
   return (
     <div
       style={{
@@ -51,31 +56,38 @@ export default function PauseMenu({ onResume, onRestart, onMainMenu }: PauseMenu
         gap: 12,
       }}
     >
-      <h2
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 36,
-          color: '#cc2200',
-          margin: '0 0 32px',
-          textShadow: '0 0 30px rgba(204, 34, 0, 0.5)',
-          letterSpacing: 6,
-        }}
-      >
-        PAUSED
-      </h2>
-      <MenuButton label="RESUME" onClick={onResume} />
-      <MenuButton label="RESTART" onClick={onRestart} />
-      <MenuButton label="MAIN MENU" onClick={onMainMenu} />
-      <p
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 11,
-          color: 'rgba(255, 150, 100, 0.3)',
-          marginTop: 24,
-        }}
-      >
-        press ESC to resume
-      </p>
+      {showSettings ? (
+        <VisualSettings onBack={() => setShowSettings(false)} />
+      ) : (
+        <>
+          <h2
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 36,
+              color: '#cc2200',
+              margin: '0 0 32px',
+              textShadow: '0 0 30px rgba(204, 34, 0, 0.5)',
+              letterSpacing: 6,
+            }}
+          >
+            PAUSED
+          </h2>
+          <MenuButton label="RESUME"    onClick={onResume}  />
+          <MenuButton label="RESTART"   onClick={onRestart} />
+          <MenuButton label="GRAPHICS"  onClick={() => setShowSettings(true)} />
+          <MenuButton label="MAIN MENU" onClick={onMainMenu} />
+          <p
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 11,
+              color: 'rgba(255, 150, 100, 0.3)',
+              marginTop: 24,
+            }}
+          >
+            press ESC to resume
+          </p>
+        </>
+      )}
     </div>
   )
 }

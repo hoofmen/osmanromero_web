@@ -1,16 +1,18 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import RailgunImpact from './RailgunImpact'
 
 interface RailgunBeamProps {
   start: THREE.Vector3
   end: THREE.Vector3
   createdAt: number
+  direction: THREE.Vector3
 }
 
 const BEAM_DURATION = 0.3
 
-export default function RailgunBeam({ start, end, createdAt }: RailgunBeamProps) {
+export default function RailgunBeam({ start, end, createdAt, direction }: RailgunBeamProps) {
   const groupRef = useRef<THREE.Group>(null)
   const materialRef = useRef<THREE.MeshBasicMaterial>(null)
   const lightStartRef = useRef<THREE.PointLight>(null)
@@ -65,6 +67,7 @@ export default function RailgunBeam({ start, end, createdAt }: RailgunBeamProps)
       <pointLight ref={lightStartRef} position={quarterPoint} color="#ff2222" intensity={25} distance={25} />
       <pointLight ref={lightMidRef} position={midpoint} color="#ff3333" intensity={35} distance={30} />
       <pointLight ref={lightEndRef} position={threeQuarterPoint} color="#ff2222" intensity={25} distance={25} />
+      <RailgunImpact position={end} direction={direction} createdAt={createdAt} />
     </group>
   )
 }

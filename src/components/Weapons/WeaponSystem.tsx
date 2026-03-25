@@ -14,6 +14,7 @@ interface Beam {
   id: number
   start: THREE.Vector3
   end: THREE.Vector3
+  direction: THREE.Vector3
   createdAt: number
 }
 
@@ -43,8 +44,13 @@ export default function WeaponSystem() {
     const now = performance.now() / 1000
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
 
+    // Barrel tip in world space — matches WeaponViewmodel offset + barrel length
+    const barrelTip = new THREE.Vector3(0, -0.22, -0.78)
+      .applyQuaternion(camera.quaternion)
+      .add(camera.position)
+
     if (weaponState.activeWeapon === 'railgun') {
-      // Hitscan: raycast from camera
+      // Accuracy ray from camera center (crosshair)
       const rayOrigin = camera.position.clone()
       const ray = new Ray(
         { x: rayOrigin.x, y: rayOrigin.y, z: rayOrigin.z },
@@ -53,20 +59,18 @@ export default function WeaponSystem() {
       const maxDist = 200
       const hit = world.castRay(ray, maxDist, true, undefined, undefined, undefined, playerRigidBodyRef.current ?? undefined)
       const dist = hit ? hit.timeOfImpact : maxDist
-      // Start beam slightly ahead of camera so it's not clipped by the near plane
-      const beamStart = rayOrigin.clone().add(forward.clone().multiplyScalar(0.5))
-      const beamEnd = rayOrigin.clone().add(forward.clone().multiplyScalar(dist))
+      const aimPoint = rayOrigin.clone().add(forward.clone().multiplyScalar(dist))
 
-      // Check if we hit a target (ray-sphere test against registry)
       checkRayHit(rayOrigin, forward, maxDist)
 
       const id = nextId++
-      setBeams((prev) => [...prev.filter((b) => now - b.createdAt < 0.4), { id, start: beamStart, end: beamEnd, createdAt: now }])
+      setBeams((prev) => [...prev.filter((b) => now - b.createdAt < 0.4), { id, start: barrelTip, end: aimPoint, direction: forward.clone(), createdAt: now }])
     } else {
-      // Rocket: spawn projectile
-      const origin = camera.position.clone().add(forward.clone().multiplyScalar(1))
+      // Rocket direction: barrel tip toward crosshair aim point
+      const aimPoint = camera.position.clone().add(forward.clone().multiplyScalar(200))
+      const rocketDir = aimPoint.clone().sub(barrelTip).normalize()
       const id = nextId++
-      setRockets((prev) => [...prev, { id, origin, direction: forward.clone(), createdAt: now }])
+      setRockets((prev) => [...prev, { id, origin: barrelTip.clone(), direction: rocketDir, createdAt: now }])
     }
   })
 
@@ -84,7 +88,7 @@ export default function WeaponSystem() {
     <>
       <WeaponViewmodel />
       {beams.map((b) => (
-        <RailgunBeam key={b.id} start={b.start} end={b.end} createdAt={b.createdAt} />
+        <RailgunBeam key={b.id} start={b.start} end={b.end} direction={b.direction} createdAt={b.createdAt} />
       ))}
       {rockets.map((r) => (
         <RocketProjectile
