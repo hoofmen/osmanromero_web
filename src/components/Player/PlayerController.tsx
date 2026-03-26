@@ -5,6 +5,7 @@ import { Ray } from '@dimforge/rapier3d-compat'
 import * as THREE from 'three'
 import { useKeyboard } from '../../hooks/useKeyboard'
 import { useMouseLook, mouseLookState } from '../../hooks/useMouseLook'
+import { touchInput } from '../../hooks/useTouchInput'
 import {
   AIR_ACCEL,
   AIR_SPEED_CAP,
@@ -135,6 +136,13 @@ export default function PlayerController() {
     if (keys.current.has('KeyS')) _wishDir.sub(_forward)
     if (keys.current.has('KeyD')) _wishDir.add(_right)
     if (keys.current.has('KeyA')) _wishDir.sub(_right)
+    // Touch joystick input (additive — works alongside keyboard)
+    if (touchInput.moveY !== 0) {
+      _wishDir.addScaledVector(_forward, touchInput.moveY)
+    }
+    if (touchInput.moveX !== 0) {
+      _wishDir.addScaledVector(_right, touchInput.moveX)
+    }
     _wishDir.y = 0
     if (_wishDir.lengthSq() > 0) _wishDir.normalize()
 
@@ -142,8 +150,8 @@ export default function PlayerController() {
     let vz = vel.z
     let vy = vel.y
 
-    // --- Track jump input (right-click only, space is reserved for zoom) ---
-    const jumpPressed = rightMouseDown.current
+    // --- Track jump input (right-click or touch button) ---
+    const jumpPressed = rightMouseDown.current || touchInput.jumpPressed
 
     if (grounded.current) {
       // --- Bunny-hop: if player is holding jump on the frame they land,

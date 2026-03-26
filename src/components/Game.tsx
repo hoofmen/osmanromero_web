@@ -17,6 +17,8 @@ import InfoPanel from './Targets/InfoPanel'
 import { bioEntries } from '../data/bioContent'
 import { useGameState } from '../hooks/useGameState'
 import { useVisualSettings } from '../hooks/useVisualSettings'
+import { useMobileDetect } from '../hooks/useMobileDetect'
+import TouchControls from './HUD/TouchControls'
 
 // Wall-mounted target placements with facing rotations
 // Rotation reference (cylinder bullseye face defaults to +Y):
@@ -66,6 +68,7 @@ export default function Game() {
   const [hitTargets, setHitTargets] = useState<Set<string>>(new Set())
   const [activePanel, setActivePanel] = useState<string | null>(null)
   const restartCount = useGameState((s) => s.restartCount)
+  const { isMobile } = useMobileDetect()
 
   // Reset game state on restart (without remounting Canvas/Physics)
   useEffect(() => {
@@ -143,6 +146,7 @@ export default function Game() {
       <Timer />
       <FPSCounter />
       <TargetCounter hit={hitTargets.size} total={targetPlacements.length} />
+      {isMobile && <TouchControls />}
       {/* Info panel */}
       {activeBioEntry && (
         <InfoPanel entry={activeBioEntry} onDismiss={dismissPanel} />

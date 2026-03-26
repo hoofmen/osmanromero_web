@@ -27,6 +27,9 @@ export function useWeaponInput() {
       }
     }
 
+    // Touch fire is handled directly via touchInput.handleFireStart()
+    // which sets weaponState.fireRequested = true without pointer lock check
+
     window.addEventListener('keydown', onKeyDown)
     document.addEventListener('mousedown', onMouseDown)
     return () => {

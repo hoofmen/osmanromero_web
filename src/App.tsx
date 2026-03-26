@@ -2,8 +2,10 @@ import { useCallback, useEffect } from 'react'
 import Game from './components/Game'
 import MainMenu from './components/UI/MainMenu'
 import PauseMenu from './components/UI/PauseMenu'
+import RotateDevice from './components/UI/RotateDevice'
 import { useGameState } from './hooks/useGameState'
 import { useBackgroundMusic } from './hooks/useBackgroundMusic'
+import { useMobileDetect } from './hooks/useMobileDetect'
 
 export default function App() {
   const phase = useGameState((s) => s.phase)
@@ -12,6 +14,8 @@ export default function App() {
   const resume = useGameState((s) => s.resume)
   const restart = useGameState((s) => s.restart)
   const returnToMenu = useGameState((s) => s.returnToMenu)
+
+  const { isMobile, isPortrait } = useMobileDetect()
 
   useBackgroundMusic()
 
@@ -52,7 +56,12 @@ export default function App() {
   }, [pause, handleResume])
 
   if (phase === 'menu') {
-    return <MainMenu onStart={handleStart} />
+    return (
+      <>
+        <MainMenu onStart={handleStart} />
+        {isMobile && isPortrait && <RotateDevice />}
+      </>
+    )
   }
 
   return (
@@ -61,6 +70,7 @@ export default function App() {
       {phase === 'paused' && (
         <PauseMenu onResume={handleResume} onRestart={handleRestart} onMainMenu={handleMainMenu} />
       )}
+      {isMobile && isPortrait && <RotateDevice />}
     </>
   )
 }
