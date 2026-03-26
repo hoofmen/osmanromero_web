@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Ray } from '@dimforge/rapier3d-compat'
 import * as THREE from 'three'
-import { checkExplosionHits } from '../../utils/targetRegistry'
+import { checkExplosionHits, checkProjectileHit } from '../../utils/targetRegistry'
 import ExplosionParticles from './ExplosionParticles'
 
 const ROCKET_SPEED = 30
@@ -98,6 +98,7 @@ export default function RocketProjectile({
     }
 
     // Move rocket
+    const prevPos = pos.current.clone()
     pos.current.x += vel.current.x * dt
     pos.current.y += vel.current.y * dt
     pos.current.z += vel.current.z * dt
@@ -108,7 +109,15 @@ export default function RocketProjectile({
       meshRef.current.position.copy(pos.current)
     }
 
-    // Collision check via raycast
+    // Check if rocket hit a bullseye target directly
+    const targetHit = checkProjectileHit(prevPos, pos.current, 0.15)
+    if (targetHit) {
+      alive.current = false
+      setExplosion({ pos: pos.current.clone(), time: now })
+      return
+    }
+
+    // Collision check via raycast (world geometry)
     if (rapierWorld) {
       const step = vel.current.clone().normalize()
       const ray = new Ray(

@@ -74,7 +74,7 @@ export default function PauseMenu({ onResume, onRestart, onMainMenu }: PauseMenu
           </h2>
           <MenuButton label="RESUME"    onClick={onResume}  />
           <MenuButton label="RESTART"   onClick={onRestart} />
-          <MenuButton label="GRAPHICS"  onClick={() => setShowSettings(true)} />
+          <MenuButton label="SETTINGS"  onClick={() => setShowSettings(true)} />
           <MenuButton label="MAIN MENU" onClick={onMainMenu} />
           <p
             style={{
@@ -85,6 +85,25 @@ export default function PauseMenu({ onResume, onRestart, onMainMenu }: PauseMenu
             }}
           >
             press ESC to resume
+          </p>
+          <p
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 10,
+              color: 'rgba(255, 150, 100, 0.25)',
+              marginTop: 8,
+            }}
+          >
+            Music: "Dragged Through Hellfire" by{' '}
+            <a
+              href="https://x.com/ZanderNoriega"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'rgba(255, 150, 100, 0.4)', textDecoration: 'underline' }}
+            >
+              Zander Noriega
+            </a>
+            {' '}(CC-BY 3.0)
           </p>
         </>
       )}

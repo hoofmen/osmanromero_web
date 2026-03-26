@@ -3,6 +3,7 @@ import Game from './components/Game'
 import MainMenu from './components/UI/MainMenu'
 import PauseMenu from './components/UI/PauseMenu'
 import { useGameState } from './hooks/useGameState'
+import { useBackgroundMusic } from './hooks/useBackgroundMusic'
 
 export default function App() {
   const phase = useGameState((s) => s.phase)
@@ -12,6 +13,7 @@ export default function App() {
   const restart = useGameState((s) => s.restart)
   const returnToMenu = useGameState((s) => s.returnToMenu)
 
+  useBackgroundMusic()
 
   const handleStart = useCallback(() => {
     start()

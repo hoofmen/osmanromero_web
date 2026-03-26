@@ -1,20 +1,86 @@
 import { useVisualSettings, VisualSettingsState } from '../../hooks/useVisualSettings'
+import { useMusicSettings } from '../../hooks/useBackgroundMusic'
 
 type ToggleKey = keyof Omit<VisualSettingsState, 'toggle'>
 
 interface SettingRow {
   key: ToggleKey
   label: string
-  ready: boolean   // false = grayed out / not yet implemented
 }
 
-const SETTINGS: SettingRow[] = [
-  { key: 'skybox',        label: 'SKYBOX',          ready: true  },
-  { key: 'particles',     label: 'PARTICLES',       ready: true  },
+const GRAPHICS_SETTINGS: SettingRow[] = [
+  { key: 'skybox',        label: 'SKYBOX'    },
+  { key: 'particles',     label: 'PARTICLES' },
 ]
+
+function ToggleRow({ label, enabled, onToggle }: { label: string; enabled: boolean; onToggle: () => void }) {
+  return (
+    <div
+      onClick={onToggle}
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        padding: '11px 0',
+        borderBottom: '1px solid rgba(204, 34, 0, 0.15)',
+        cursor: 'pointer',
+        userSelect: 'none',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLDivElement).style.background = 'rgba(204, 34, 0, 0.08)'
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.background = 'transparent'
+      }}
+    >
+      <span
+        style={{
+          fontFamily: 'monospace',
+          fontSize: 14,
+          letterSpacing: 2,
+          color: '#cc2200',
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          fontFamily: 'monospace',
+          fontSize: 13,
+          letterSpacing: 2,
+          color: enabled ? '#ff4400' : 'rgba(204, 34, 0, 0.35)',
+          textShadow: enabled ? '0 0 10px rgba(255, 68, 0, 0.6)' : 'none',
+          minWidth: 40,
+          textAlign: 'right',
+        }}
+      >
+        {enabled ? 'ON' : 'OFF'}
+      </span>
+    </div>
+  )
+}
+
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <h3
+      style={{
+        fontFamily: 'monospace',
+        fontSize: 13,
+        color: 'rgba(255, 150, 100, 0.5)',
+        letterSpacing: 6,
+        margin: '0 0 12px',
+      }}
+    >
+      {label}
+    </h3>
+  )
+}
 
 export default function VisualSettings({ onBack }: { onBack: () => void }) {
   const settings = useVisualSettings()
+  const muted = useMusicSettings((s) => s.muted)
+  const toggleMute = useMusicSettings((s) => s.toggleMute)
 
   return (
     <div
@@ -26,68 +92,25 @@ export default function VisualSettings({ onBack }: { onBack: () => void }) {
         width: 340,
       }}
     >
-      <h3
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 13,
-          color: 'rgba(255, 150, 100, 0.5)',
-          letterSpacing: 6,
-          margin: '0 0 28px',
-        }}
-      >
-        GRAPHICS
-      </h3>
+      <SectionHeader label="GRAPHICS" />
 
-      {SETTINGS.map(({ key, label, ready }) => {
-        const enabled = settings[key] as boolean
-        return (
-          <div
-            key={key}
-            onClick={() => ready && settings.toggle(key)}
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              padding: '11px 0',
-              borderBottom: '1px solid rgba(204, 34, 0, 0.15)',
-              cursor: ready ? 'pointer' : 'default',
-              opacity: ready ? 1 : 0.3,
-              userSelect: 'none',
-            }}
-            onMouseEnter={(e) => {
-              if (ready) (e.currentTarget as HTMLDivElement).style.background = 'rgba(204, 34, 0, 0.08)'
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLDivElement).style.background = 'transparent'
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'monospace',
-                fontSize: 14,
-                letterSpacing: 2,
-                color: ready ? '#cc2200' : '#663300',
-              }}
-            >
-              {label}
-            </span>
-            <span
-              style={{
-                fontFamily: 'monospace',
-                fontSize: 13,
-                letterSpacing: 2,
-                color: enabled ? '#ff4400' : 'rgba(204, 34, 0, 0.35)',
-                textShadow: enabled ? '0 0 10px rgba(255, 68, 0, 0.6)' : 'none',
-                minWidth: 40,
-                textAlign: 'right',
-              }}
-            >
-              {ready ? (enabled ? 'ON' : 'OFF') : 'SOON'}
-            </span>
-          </div>
-        )
-      })}
+      {GRAPHICS_SETTINGS.map(({ key, label }) => (
+        <ToggleRow
+          key={key}
+          label={label}
+          enabled={settings[key] as boolean}
+          onToggle={() => settings.toggle(key)}
+        />
+      ))}
+
+      <div style={{ marginTop: 24, width: '100%' }}>
+        <SectionHeader label="AUDIO" />
+        <ToggleRow
+          label="MUSIC"
+          enabled={!muted}
+          onToggle={toggleMute}
+        />
+      </div>
 
       <button
         onClick={onBack}

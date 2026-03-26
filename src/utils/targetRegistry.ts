@@ -56,6 +56,45 @@ export function checkRayHit(
 }
 
 /**
+ * Check if a moving sphere (projectile) hits any registered target along its path.
+ * Returns the id of the closest hit target, or null.
+ */
+export function checkProjectileHit(
+  prevPos: THREE.Vector3,
+  currPos: THREE.Vector3,
+  projectileRadius: number,
+): string | null {
+  const dir = _diff.subVectors(currPos, prevPos)
+  const segLen = dir.length()
+  if (segLen < 0.0001) return null
+  dir.divideScalar(segLen) // normalize
+
+  let closestId: string | null = null
+  let closestT = segLen
+
+  for (const [id, target] of targets) {
+    const combinedR = projectileRadius + target.radius
+    const oc = new THREE.Vector3().subVectors(prevPos, target.position)
+    const b = oc.dot(dir)
+    const c = oc.lengthSq() - combinedR * combinedR
+    const disc = b * b - c
+    if (disc < 0) continue
+    const t = -b - Math.sqrt(disc)
+    if (t >= 0 && t < closestT) {
+      closestT = t
+      closestId = id
+    }
+    // Also check if projectile is already inside the sphere
+    if (t < 0 && c < 0 && closestId === null) {
+      closestT = 0
+      closestId = id
+    }
+  }
+
+  return closestId
+}
+
+/**
  * Check if any targets are within explosion radius.
  * Calls onHit for each target hit.
  */
