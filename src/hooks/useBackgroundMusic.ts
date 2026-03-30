@@ -43,12 +43,16 @@ export function useBackgroundMusic() {
     const audio = audioRef.current
     if (!audio) return
 
-    if (inputMode === 'mobile' && isPortrait) {
-      audio.pause()
-    } else if (phase === 'playing') {
-      audio.play().catch(() => {
-        // Browser may block autoplay — will start on next user interaction
-      })
+    if (phase === 'playing') {
+      if (inputMode === 'mobile' && isPortrait) {
+        // Unlock the audio element via the user's tap gesture (play then immediately pause),
+        // so that audio.play() after rotation succeeds without a new gesture.
+        audio.play().then(() => audio.pause()).catch(() => {})
+      } else {
+        audio.play().catch(() => {
+          // Browser may block autoplay — will start on next user interaction
+        })
+      }
     } else if (phase === 'paused') {
       audio.pause()
     } else if (phase === 'menu') {
