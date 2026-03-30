@@ -5,6 +5,7 @@ import { MOUSE_SENSITIVITY } from '../utils/constants'
 export const mouseLookState = {
   yaw: { current: 0 },
   pitch: { current: 0 },
+  rightMouseDown: { current: false },
 }
 
 export function useMouseLook() {
@@ -13,7 +14,7 @@ export function useMouseLook() {
   // Sync shared state
   mouseLookState.yaw = yaw
   mouseLookState.pitch = pitch
-  const rightMouseDown = useRef(false)
+  const rightMouseDown = mouseLookState.rightMouseDown
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {

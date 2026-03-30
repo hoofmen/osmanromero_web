@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useMouseLook } from '../../hooks/useMouseLook'
+import { mouseLookState } from '../../hooks/useMouseLook'
 
 const FOV_NORMAL = 90
 const FOV_ZOOMED = 40
@@ -8,7 +8,7 @@ const LERP_SPEED = 12
 
 export default function CameraZoom() {
   const { camera } = useThree()
-  const { rightMouseDown } = useMouseLook()
+  const rightMouseDown = mouseLookState.rightMouseDown
 
   useFrame((_, delta) => {
     const target = rightMouseDown.current ? FOV_ZOOMED : FOV_NORMAL
