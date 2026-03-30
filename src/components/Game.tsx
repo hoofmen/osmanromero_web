@@ -82,6 +82,7 @@ export default function Game() {
   const [activePanel, setActivePanel] = useState<string | null>(null)
   const restartCount = useGameState((s) => s.restartCount)
   const inputMode = useGameState((s) => s.inputMode)
+  const phase = useGameState((s) => s.phase)
 
   // Reset game state on restart (without remounting Canvas/Physics)
   useEffect(() => {
@@ -158,7 +159,7 @@ export default function Game() {
       <Timer />
       <FPSCounter />
       <TargetCounter hit={hitTargets.size} total={targetPlacements.length} />
-      {inputMode === 'mobile' && <TouchControls />}
+      {inputMode === 'mobile' && phase === 'playing' && <TouchControls />}
       {/* Info panel */}
       {activeBioEntry && (
         <InfoPanel entry={activeBioEntry} onDismiss={dismissPanel} />

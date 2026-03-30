@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { CapsuleCollider, RigidBody, useRapier, type RapierRigidBody } from '@react-three/rapier'
 import { Ray } from '@dimforge/rapier3d-compat'
@@ -92,6 +92,11 @@ export default function PlayerController() {
   const wasGrounded = useRef(false)
   const jumpQueued = useRef(false)
   const { world } = useRapier()
+
+  // Clear stale ref on unmount so respawnPlayer() doesn't call into a destroyed rigid body
+  useEffect(() => {
+    return () => { playerRigidBodyRef.current = null }
+  }, [])
 
   // Temp vectors to avoid allocation
   const _forward = new THREE.Vector3()
