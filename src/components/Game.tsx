@@ -17,6 +17,7 @@ import InfoPanel from './Targets/InfoPanel'
 import { bioEntries } from '../data/bioContent'
 import { useGameState } from '../hooks/useGameState'
 import { useVisualSettings } from '../hooks/useVisualSettings'
+import { LIGHTING_PRESETS } from '../utils/lightingPresets'
 import TouchControls from './HUD/TouchControls'
 
 // Wall-mounted target placements with facing rotations
@@ -39,14 +40,27 @@ const targetPlacements: { id: string; position: [number, number, number]; rotati
 
 const bioMap = new Map(bioEntries.map((e) => [e.id, e]))
 
-function Lights() {
+function SceneAtmosphere() {
+  const brightness = useVisualSettings((s) => s.brightness)
+  const p = LIGHTING_PRESETS[brightness]
   return (
     <>
-      <ambientLight intensity={0.5} color="#ff4400" />
+      <color attach="background" args={[p.bgColor]} />
+      <fog attach="fog" args={[p.fogColor, p.fogNear, p.fogFar]} />
+    </>
+  )
+}
+
+function Lights() {
+  const brightness = useVisualSettings((s) => s.brightness)
+  const p = LIGHTING_PRESETS[brightness]
+  return (
+    <>
+      <ambientLight intensity={p.ambientIntensity} color={p.ambientColor} />
       <directionalLight
         position={[-40, 28, -30]}
-        intensity={1.5}
-        color="#cc3300"
+        intensity={p.mainDirIntensity}
+        color={p.mainDirColor}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -57,8 +71,8 @@ function Lights() {
         shadow-camera-near={0.1}
         shadow-camera-far={160}
       />
-      <directionalLight position={[40, 6, 30]} intensity={0.7} color="#882200" />
-      <hemisphereLight args={['#441100', '#0a0000', 0.5]} />
+      <directionalLight position={[40, 6, 30]} intensity={p.fillDirIntensity} color={p.fillDirColor} />
+      <hemisphereLight args={[p.hemiSky, p.hemiGround, p.hemiIntensity]} />
     </>
   )
 }
@@ -115,8 +129,7 @@ export default function Game() {
         camera={{ fov: 90, near: 0.1, far: 500 }}
         style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%' }}
       >
-        <color attach="background" args={['#2f0a0a']} />
-        <fog attach="fog" args={['#1a0505', 40, 120]} />
+        <SceneAtmosphere />
         {skybox && <Skybox />}
         <FPSTracker />
         <Suspense fallback={null}>

@@ -1,17 +1,57 @@
-import { useVisualSettings, VisualSettingsState } from '../../hooks/useVisualSettings'
+import { useVisualSettings } from '../../hooks/useVisualSettings'
 import { useMusicSettings } from '../../hooks/useBackgroundMusic'
+import type { BrightnessLevel } from '../../utils/lightingPresets'
 
-type ToggleKey = keyof Omit<VisualSettingsState, 'toggle'>
-
-interface SettingRow {
-  key: ToggleKey
-  label: string
-}
-
-const GRAPHICS_SETTINGS: SettingRow[] = [
-  { key: 'skybox',        label: 'SKYBOX'    },
-  { key: 'particles',     label: 'PARTICLES' },
+const BRIGHTNESS_OPTIONS: { level: BrightnessLevel; label: string }[] = [
+  { level: 1, label: 'DARK'   },
+  { level: 2, label: 'DIM'    },
+  { level: 3, label: 'BRIGHT' },
 ]
+
+function BrightnessRow({ current, onChange }: { current: BrightnessLevel; onChange: (l: BrightnessLevel) => void }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        padding: '11px 0',
+        borderBottom: '1px solid rgba(204, 34, 0, 0.15)',
+      }}
+    >
+      <span style={{ fontFamily: 'monospace', fontSize: 14, letterSpacing: 2, color: '#cc2200' }}>
+        BRIGHTNESS
+      </span>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {BRIGHTNESS_OPTIONS.map(({ level, label }) => {
+          const active = current === level
+          return (
+            <span
+              key={level}
+              onClick={() => onChange(level)}
+              style={{
+                fontFamily: 'monospace',
+                fontSize: 12,
+                letterSpacing: 2,
+                padding: '3px 10px',
+                cursor: 'pointer',
+                border: `1px solid ${active ? '#ff4400' : 'rgba(204, 34, 0, 0.3)'}`,
+                color: active ? '#ff4400' : 'rgba(204, 34, 0, 0.45)',
+                textShadow: active ? '0 0 10px rgba(255, 68, 0, 0.6)' : 'none',
+                background: active ? 'rgba(255, 68, 0, 0.1)' : 'transparent',
+                transition: 'all 0.15s',
+                userSelect: 'none',
+              }}
+            >
+              {label}
+            </span>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 function ToggleRow({ label, enabled, onToggle }: { label: string; enabled: boolean; onToggle: () => void }) {
   return (
@@ -78,7 +118,7 @@ function SectionHeader({ label }: { label: string }) {
 }
 
 export default function VisualSettings({ onBack }: { onBack: () => void }) {
-  const settings = useVisualSettings()
+  const { skybox, particles, brightness, toggle, setBrightness } = useVisualSettings()
   const muted = useMusicSettings((s) => s.muted)
   const toggleMute = useMusicSettings((s) => s.toggleMute)
 
@@ -94,14 +134,9 @@ export default function VisualSettings({ onBack }: { onBack: () => void }) {
     >
       <SectionHeader label="GRAPHICS" />
 
-      {GRAPHICS_SETTINGS.map(({ key, label }) => (
-        <ToggleRow
-          key={key}
-          label={label}
-          enabled={settings[key] as boolean}
-          onToggle={() => settings.toggle(key)}
-        />
-      ))}
+      <BrightnessRow current={brightness} onChange={setBrightness} />
+      <ToggleRow label="SKYBOX"    enabled={skybox}    onToggle={() => toggle('skybox')}    />
+      <ToggleRow label="PARTICLES" enabled={particles} onToggle={() => toggle('particles')} />
 
       <div style={{ marginTop: 24, width: '100%' }}>
         <SectionHeader label="AUDIO" />

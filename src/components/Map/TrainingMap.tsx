@@ -3,6 +3,8 @@ import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { playerRigidBodyRef } from '../Player/PlayerController'
+import { useVisualSettings } from '../../hooks/useVisualSettings'
+import { LIGHTING_PRESETS } from '../../utils/lightingPresets'
 
 // --- Reusable components ---
 
@@ -96,6 +98,8 @@ interface TorchProps {
 
 function Torch({ position }: TorchProps) {
   const flameRef = useRef<THREE.PointLight>(null)
+  const brightness = useVisualSettings((s) => s.brightness)
+  const torchDistance = LIGHTING_PRESETS[brightness].torchDistance
 
   useFrame(() => {
     if (!flameRef.current) return
@@ -122,7 +126,7 @@ function Torch({ position }: TorchProps) {
         <meshBasicMaterial color="#ffaa00" toneMapped={false} />
       </mesh>
       {/* Light */}
-      <pointLight ref={flameRef} position={[0, 0.2, 0]} color="#ff4400" intensity={8} distance={18} />
+      <pointLight ref={flameRef} position={[0, 0.2, 0]} color="#ff4400" intensity={8} distance={torchDistance} />
     </group>
   )
 }
