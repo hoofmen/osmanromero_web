@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { useKeyboard } from '../../hooks/useKeyboard'
 import { useMouseLook, mouseLookState } from '../../hooks/useMouseLook'
 import { touchInput } from '../../hooks/useTouchInput'
+import { useGameState } from '../../hooks/useGameState'
 import {
   AIR_ACCEL,
   AIR_SPEED_CAP,
@@ -98,6 +99,7 @@ export default function PlayerController() {
   const _wishDir = new THREE.Vector3()
 
   useFrame((state, delta) => {
+    if (useGameState.getState().phase !== 'playing') return
     const rb = rigidBody.current
     if (!rb) return
     // Sync shared ref for weapon system

@@ -4,6 +4,7 @@ import { useRapier } from '@react-three/rapier'
 import { Ray } from '@dimforge/rapier3d-compat'
 import * as THREE from 'three'
 import { weaponState, tryFire, useWeaponInput } from '../../hooks/useWeapons'
+import { useGameState } from '../../hooks/useGameState'
 import RailgunBeam from './RailgunBeam'
 import RocketProjectile from './RocketProjectile'
 import WeaponViewmodel from './WeaponViewmodel'
@@ -39,6 +40,7 @@ export default function WeaponSystem() {
   }, [])
 
   useFrame(() => {
+    if (useGameState.getState().phase !== 'playing') return
     if (!tryFire()) return
 
     const now = performance.now() / 1000

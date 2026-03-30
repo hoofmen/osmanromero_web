@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { create } from 'zustand'
 import { useGameState, type GamePhase } from './useGameState'
+import { useMobileDetect } from './useMobileDetect'
 
 interface MusicSettings {
   volume: number
@@ -19,8 +20,10 @@ export const useMusicSettings = create<MusicSettings>((set) => ({
 export function useBackgroundMusic() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const phase = useGameState((s) => s.phase)
+  const inputMode = useGameState((s) => s.inputMode)
   const volume = useMusicSettings((s) => s.volume)
   const muted = useMusicSettings((s) => s.muted)
+  const { isPortrait } = useMobileDetect()
 
   // Create audio element once
   useEffect(() => {
@@ -35,12 +38,14 @@ export function useBackgroundMusic() {
     }
   }, [])
 
-  // React to phase changes
+  // React to phase changes and portrait state
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
-    if (phase === 'playing') {
+    if (inputMode === 'mobile' && isPortrait) {
+      audio.pause()
+    } else if (phase === 'playing') {
       audio.play().catch(() => {
         // Browser may block autoplay — will start on next user interaction
       })
@@ -50,7 +55,7 @@ export function useBackgroundMusic() {
       audio.pause()
       audio.currentTime = 0
     }
-  }, [phase])
+  }, [phase, inputMode, isPortrait])
 
   // React to volume/mute changes
   useEffect(() => {
