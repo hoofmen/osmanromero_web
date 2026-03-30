@@ -9,28 +9,34 @@ import { useMobileDetect } from './hooks/useMobileDetect'
 
 export default function App() {
   const phase = useGameState((s) => s.phase)
+  const inputMode = useGameState((s) => s.inputMode)
   const start = useGameState((s) => s.start)
   const pause = useGameState((s) => s.pause)
   const resume = useGameState((s) => s.resume)
   const restart = useGameState((s) => s.restart)
   const returnToMenu = useGameState((s) => s.returnToMenu)
 
-  const { isMobile, isPortrait } = useMobileDetect()
+  const { isPortrait } = useMobileDetect()
 
   useBackgroundMusic()
 
-  const handleStart = useCallback(() => {
-    start()
+  const handleDesktopStart = useCallback(() => {
+    start('desktop')
+    document.body.requestPointerLock()
+  }, [start])
+
+  const handleMobileStart = useCallback(() => {
+    start('mobile')
   }, [start])
 
   const handleResume = useCallback(() => {
     resume()
-    document.body.requestPointerLock()
-  }, [resume])
+    if (inputMode === 'desktop') document.body.requestPointerLock()
+  }, [resume, inputMode])
 
   const handleRestart = useCallback(() => {
     restart()
-    document.body.requestPointerLock()
+    if (useGameState.getState().inputMode === 'desktop') document.body.requestPointerLock()
   }, [restart])
 
   const handleMainMenu = useCallback(() => {
@@ -57,10 +63,7 @@ export default function App() {
 
   if (phase === 'menu') {
     return (
-      <>
-        <MainMenu onStart={handleStart} />
-        {isMobile && isPortrait && <RotateDevice />}
-      </>
+      <MainMenu onDesktop={handleDesktopStart} onMobile={handleMobileStart} />
     )
   }
 
@@ -70,7 +73,7 @@ export default function App() {
       {phase === 'paused' && (
         <PauseMenu onResume={handleResume} onRestart={handleRestart} onMainMenu={handleMainMenu} />
       )}
-      {isMobile && isPortrait && <RotateDevice />}
+      {inputMode === 'mobile' && isPortrait && <RotateDevice />}
     </>
   )
 }

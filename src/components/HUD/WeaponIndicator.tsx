@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react'
 import { weaponState, WEAPON_STATS } from '../../hooks/useWeapons'
-import { useMobileDetect } from '../../hooks/useMobileDetect'
+import { useGameState } from '../../hooks/useGameState'
 
 export default function WeaponIndicator() {
-  const { isMobile } = useMobileDetect()
+  const inputMode = useGameState((s) => s.inputMode)
   const nameRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
 
@@ -31,7 +31,7 @@ export default function WeaponIndicator() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  if (isMobile) return null
+  if (inputMode === 'mobile') return null
 
   return (
     <div

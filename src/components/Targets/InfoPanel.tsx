@@ -1,5 +1,5 @@
 import { BioEntry } from '../../data/bioContent'
-import { useMobileDetect } from '../../hooks/useMobileDetect'
+import { useGameState } from '../../hooks/useGameState'
 
 interface InfoPanelProps {
   entry: BioEntry
@@ -16,9 +16,9 @@ const categoryColors: Record<BioEntry['category'], string> = {
 
 export default function InfoPanel({ entry, onDismiss }: InfoPanelProps) {
   const color = categoryColors[entry.category]
-  const { isMobile } = useMobileDetect()
+  const inputMode = useGameState((s) => s.inputMode)
 
-  if (isMobile) {
+  if (inputMode === 'mobile') {
     return (
       <div
         onClick={onDismiss}

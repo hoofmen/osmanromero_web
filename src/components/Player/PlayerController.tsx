@@ -86,7 +86,7 @@ export function respawnPlayer() {
 export default function PlayerController() {
   const rigidBody = useRef<RapierRigidBody>(null)
   const keys = useKeyboard()
-  const { yaw, pitch, rightMouseDown } = useMouseLook()
+  const { yaw, pitch } = useMouseLook()
   const grounded = useRef(false)
   const wasGrounded = useRef(false)
   const jumpQueued = useRef(false)
@@ -150,8 +150,8 @@ export default function PlayerController() {
     let vz = vel.z
     let vy = vel.y
 
-    // --- Track jump input (right-click or touch button) ---
-    const jumpPressed = rightMouseDown.current || touchInput.jumpPressed
+    // --- Track jump input (space bar or touch button) ---
+    const jumpPressed = keys.current.has('Space') || touchInput.jumpPressed
 
     if (grounded.current) {
       // --- Bunny-hop: if player is holding jump on the frame they land,

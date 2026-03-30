@@ -17,7 +17,6 @@ import InfoPanel from './Targets/InfoPanel'
 import { bioEntries } from '../data/bioContent'
 import { useGameState } from '../hooks/useGameState'
 import { useVisualSettings } from '../hooks/useVisualSettings'
-import { useMobileDetect } from '../hooks/useMobileDetect'
 import TouchControls from './HUD/TouchControls'
 
 // Wall-mounted target placements with facing rotations
@@ -68,7 +67,7 @@ export default function Game() {
   const [hitTargets, setHitTargets] = useState<Set<string>>(new Set())
   const [activePanel, setActivePanel] = useState<string | null>(null)
   const restartCount = useGameState((s) => s.restartCount)
-  const { isMobile } = useMobileDetect()
+  const inputMode = useGameState((s) => s.inputMode)
 
   // Reset game state on restart (without remounting Canvas/Physics)
   useEffect(() => {
@@ -89,7 +88,7 @@ export default function Game() {
 
   const dismissPanel = useCallback(() => {
     setActivePanel(null)
-    document.body.requestPointerLock()
+    if (useGameState.getState().inputMode === 'desktop') document.body.requestPointerLock()
   }, [])
 
   // ENTER to dismiss panel
@@ -146,7 +145,7 @@ export default function Game() {
       <Timer />
       <FPSCounter />
       <TargetCounter hit={hitTargets.size} total={targetPlacements.length} />
-      {isMobile && <TouchControls />}
+      {inputMode === 'mobile' && <TouchControls />}
       {/* Info panel */}
       {activeBioEntry && (
         <InfoPanel entry={activeBioEntry} onDismiss={dismissPanel} />

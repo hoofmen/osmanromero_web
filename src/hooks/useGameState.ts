@@ -1,13 +1,15 @@
 import { create } from 'zustand'
 
 export type GamePhase = 'menu' | 'playing' | 'paused'
+export type InputMode = 'desktop' | 'mobile'
 
 interface GameState {
   phase: GamePhase
+  inputMode: InputMode
   startTime: number
   elapsed: number
   restartCount: number
-  start: () => void
+  start: (mode: InputMode) => void
   pause: () => void
   resume: () => void
   restart: () => void
@@ -17,12 +19,13 @@ interface GameState {
 
 export const useGameState = create<GameState>((set, get) => ({
   phase: 'menu',
+  inputMode: 'desktop',
   startTime: 0,
   elapsed: 0,
   restartCount: 0,
 
-  start: () => {
-    set({ phase: 'playing', startTime: performance.now(), elapsed: 0 })
+  start: (mode) => {
+    set({ phase: 'playing', inputMode: mode, startTime: performance.now(), elapsed: 0 })
   },
 
   pause: () => {
@@ -44,7 +47,7 @@ export const useGameState = create<GameState>((set, get) => ({
   },
 
   returnToMenu: () => {
-    set({ phase: 'menu', startTime: 0, elapsed: 0 })
+    set({ phase: 'menu', inputMode: 'desktop', startTime: 0, elapsed: 0 })
   },
 
   tick: () => {

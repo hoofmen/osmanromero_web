@@ -1,4 +1,27 @@
-export default function MainMenu({ onStart }: { onStart: () => void }) {
+export default function MainMenu({ onDesktop, onMobile }: { onDesktop: () => void; onMobile: () => void }) {
+  const btnBase: React.CSSProperties = {
+    fontFamily: 'monospace',
+    fontSize: 18,
+    padding: '16px 48px',
+    background: 'transparent',
+    border: '2px solid #cc2200',
+    color: '#cc2200',
+    cursor: 'pointer',
+    letterSpacing: 3,
+    transition: 'all 0.2s',
+    width: '100%',
+  }
+
+  const handleEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = '#cc2200'
+    e.currentTarget.style.color = '#1a0505'
+  }
+
+  const handleLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.style.background = 'transparent'
+    e.currentTarget.style.color = '#cc2200'
+  }
+
   return (
     <div
       style={{
@@ -34,44 +57,57 @@ export default function MainMenu({ onStart }: { onStart: () => void }) {
       >
         A BIO DEFRAG EXPERIENCE
       </p>
-      <button
-        onClick={onStart}
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 18,
-          padding: '16px 48px',
-          background: 'transparent',
-          border: '2px solid #cc2200',
-          color: '#cc2200',
-          cursor: 'pointer',
-          letterSpacing: 3,
-          transition: 'all 0.2s',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#cc2200'
-          e.currentTarget.style.color = '#1a0505'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = '#cc2200'
-        }}
-      >
-        ENTER THE ARENA
-      </button>
-      <p
-        style={{
-          fontFamily: 'monospace',
-          fontSize: 11,
-          color: 'rgba(255, 150, 100, 0.25)',
-          marginTop: 40,
-          lineHeight: 1.8,
-          textAlign: 'center',
-        }}
-      >
-        WASD move &middot; MOUSE look &middot; RIGHT-CLICK jump
-        <br />
-        SPACE zoom &middot; Q railgun &middot; E rocket &middot; ESC pause
-      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: 280 }}>
+        <div>
+          <button
+            onClick={onDesktop}
+            style={btnBase}
+            onMouseEnter={handleEnter}
+            onMouseLeave={handleLeave}
+          >
+            DESKTOP
+          </button>
+          <p
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 10,
+              color: 'rgba(255, 150, 100, 0.25)',
+              margin: '6px 0 0',
+              letterSpacing: 2,
+              textAlign: 'center',
+            }}
+          >
+            KEYBOARD + MOUSE
+          </p>
+        </div>
+
+        <div>
+          <button
+            onClick={onMobile}
+            style={{ ...btnBase, border: '1px solid rgba(204, 34, 0, 0.5)', color: 'rgba(204, 34, 0, 0.6)' }}
+            onMouseEnter={handleEnter}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.color = 'rgba(204, 34, 0, 0.6)'
+            }}
+          >
+            MOBILE
+          </button>
+          <p
+            style={{
+              fontFamily: 'monospace',
+              fontSize: 10,
+              color: 'rgba(255, 150, 100, 0.25)',
+              margin: '6px 0 0',
+              letterSpacing: 2,
+              textAlign: 'center',
+            }}
+          >
+            TOUCH CONTROLS
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

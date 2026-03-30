@@ -27,10 +27,13 @@ export default function WeaponViewmodel() {
     bobPhase.current += delta * 8 * speedNorm
 
     const bobAmp = 0.018 * speedNorm
-    const bobX = Math.sin(bobPhase.current)             * bobAmp
-    const bobY = Math.abs(Math.cos(bobPhase.current))   * bobAmp * 0.5
+    const bobX = Math.sin(bobPhase.current)           * bobAmp
+    const bobY = Math.abs(Math.cos(bobPhase.current)) * bobAmp * 0.5
 
-    groupRef.current.position.x += bobX
+    // Apply lateral bob along camera's local right vector so the swing
+    // is always screen-relative, not world-X-relative
+    const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion)
+    groupRef.current.position.addScaledVector(camRight, bobX)
     groupRef.current.position.y -= bobY
 
     // Weapon visibility
