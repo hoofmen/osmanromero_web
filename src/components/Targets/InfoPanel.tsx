@@ -6,16 +6,16 @@ interface InfoPanelProps {
   onDismiss: () => void
 }
 
-const categoryColors: Record<BioEntry['category'], string> = {
-  about: '#00ccff',
-  experience: '#ff6600',
-  skills: '#00ff88',
-  projects: '#ff44cc',
-  contact: '#ffcc00',
+const panelColors: Record<string, string> = {
+  'target-about': '#00ccff',
+  'target-experience-1': '#ff6600',
+  'target-experience-2': '#ff6600',
+  'target-skills': '#00ff88',
+  'target-contact': '#ffcc00',
 }
 
 export default function InfoPanel({ entry, onDismiss }: InfoPanelProps) {
-  const color = categoryColors[entry.category]
+  const color = panelColors[entry.id] ?? '#ff6600'
   const inputMode = useGameState((s) => s.inputMode)
 
   if (inputMode === 'mobile') {
@@ -50,9 +50,6 @@ export default function InfoPanel({ entry, onDismiss }: InfoPanelProps) {
             animation: 'panelFadeIn 0.2s ease-out',
           }}
         >
-          <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: 2, color, marginBottom: 3 }}>
-            {entry.category}
-          </div>
           <h3 style={{ margin: '0 0 6px', fontSize: 14, color: '#fff', fontWeight: 700, borderBottom: `1px solid ${color}40`, paddingBottom: 6 }}>
             {entry.title}
           </h3>
@@ -112,9 +109,6 @@ export default function InfoPanel({ entry, onDismiss }: InfoPanelProps) {
           animation: 'panelSlideIn 0.25s ease-out',
         }}
       >
-        <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', color, marginBottom: '4px' }}>
-          {entry.category}
-        </div>
         <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#ffffff', fontWeight: 700, borderBottom: `1px solid ${color}40`, paddingBottom: '8px' }}>
           {entry.title}
         </h3>
